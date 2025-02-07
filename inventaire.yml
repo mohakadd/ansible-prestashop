@@ -1,0 +1,13 @@
+all:
+  vars:
+    web_ip: "X.X.X.X" #IP de votre serveur WEB
+    db_ip: "X.X.X.X" #IP de votre serveur BD
+  children:
+    web:
+      hosts:
+        webserver:
+          ansible_host: "{{ web_ip }}"
+    db:
+      hosts:
+        dbserver:
+          ansible_host: "{{ db_ip }}"

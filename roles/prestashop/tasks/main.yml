@@ -1,0 +1,123 @@
+- name: Ajouter le dépôt Ondřej pour PHP
+  apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+  become: yes
+
+- name: Mettre à jour le cache apt
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Installer Apache, PHP 7.4 et modules requis pour PrestaShop
+  apt:
+    name:
+      - php7.4
+      - php7.4-mysql
+      - php7.4-xml
+      - php7.4-curl
+      - php7.4-gd
+      - php7.4-mbstring
+      - php7.4-zip
+      - libapache2-mod-php7.4
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Désactiver PHP 8.1 et PHP 8.3 et activer PHP 7.4 dans Apache
+  command: bash -c "a2dismod php8.1 && a2dismod php8.3 && a2enmod php7.4"
+  become: yes
+  ignore_errors: yes
+
+- name: Installer l'extension PHP Intl pour PHP 7.4
+  apt:
+    name: php7.4-intl
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Activer le module Apache mod_rewrite
+  command: a2enmod rewrite
+  become: yes
+
+- name: Arrêter le service Apache
+  service:
+    name: apache2
+    state: stopped
+  become: yes
+
+- name: Supprimer le répertoire /var/www/html
+  file:
+    path: /var/www/html
+    state: absent
+  become: yes
+
+- name: Démarrer le service Apache
+  service:
+    name: apache2
+    state: started
+  become: yes
+
+- name: Installer unzip
+  apt:
+    name: unzip
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Télécharger Prestashop
+  get_url:
+    url: "https://github.com/PrestaShop/PrestaShop/releases/download/8.2.0/prestashop_8.2.0.zip"
+    dest: /tmp/prestashop.zip
+  become: yes
+
+- name: Créer le répertoire de déploiement Prestashop
+  file:
+    path: /var/www/html/prestashop
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  become: yes
+
+- name: Décompresser Prestashop dans le répertoire web
+  unarchive:
+    src: /tmp/prestashop.zip
+    dest: /var/www/html/prestashop
+    remote_src: yes
+  become: yes
+
+- name: Supprimer l'archive PrestaShop dans /tmp
+  file:
+    path: /tmp/prestashop.zip
+    state: absent
+  become: yes
+
+- name: Définir les permissions sur le répertoire Prestashop
+  file:
+    path: /var/www/html/prestashop
+    owner: www-data
+    group: www-data
+    recurse: yes
+    state: directory
+  become: yes
+
+- name: Déployer la configuration Apache pour Prestashop
+  template:
+    src: prestashop.conf.j2
+    dest: /etc/apache2/sites-available/prestashop.conf
+  become: yes
+
+- name: Activer le site Prestashop
+  command: a2ensite prestashop.conf
+  become: yes
+
+- name: Désactiver le site par défaut d'Apache
+  command: a2dissite 000-default.conf
+  become: yes
+
+- name: Redémarrer Apache pour appliquer les changements
+  service:
+    name: apache2
+    state: restarted
+  become: yes

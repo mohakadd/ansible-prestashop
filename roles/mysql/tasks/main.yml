@@ -1,0 +1,81 @@
+---
+- name: MySql - Installation de mysql-server
+  apt:
+    pkg: mysql-server
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present
+  when: ansible_distribution == 'Ubuntu'
+
+- name: MySql - Installation de  mariadb-server
+  apt:
+    pkg: mariadb-server
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present
+  when: ansible_distribution == 'Debian'
+
+- name: MySql - Installer php
+  apt:
+    pkg:
+      [
+        "php",
+        "php-fpm",
+        "php-curl",
+        "php-mysql",
+        "php-gd",
+        "php-mbstring",
+        "php-xml",
+        "php-imagick",
+        "php-zip",
+        "php-xmlrpc"
+      ]
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present
+
+- name: MySql - Démarrage de MariaDB
+  service:
+    name: mysql
+    state: started
+
+- name: MySql - Installation des dépendences
+  apt:
+    pkg: ["php-mysql", "python3-pymysql"]
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present
+
+- name: MySql - Suppression de Apache si présent
+  apt: 
+    name: apache2
+    state: absent
+
+- name: Modifier la configuration MySQL pour autoriser les connexions distantes
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 0.0.0.0'
+  notify: Restart MySQL
+  become: yes
+
+- name: Créer la base de données Prestashop
+  community.mysql.mysql_db:
+    name: "{{ prestashop_db_name }}"
+    state: present
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  become: yes
+
+- name: Créer l'utilisateur dédié avec accès distant
+  community.mysql.mysql_user:
+    name: "{{ prestashop_db_user }}"
+    host: "{{ web_ip }}"
+    password: "{{ prestashop_db_password }}"
+    priv: "prestashop.*:ALL,GRANT"
+    state: present
+    login_unix_socket: "/var/run/mysqld/mysqld.sock"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  become: yes

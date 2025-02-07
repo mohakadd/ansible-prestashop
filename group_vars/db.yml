@@ -1,0 +1,11 @@
+---
+
+# A modifier
+mysql_root_password: "mysqlp@ss" # Le mot de passe pour l'utilisateur root pour MySQL
+prestashop_db_name: "prestashop" # Le nom de la base de données pour Prestashop
+prestashop_db_password: "passdb" # Le mot de passe pour l'utilisateur de la base de données Prestashop
+prestashop_db_user: "userdbt" # Le nom de l'utilisateur pour se connecter à la base de données Prestashop
+
+# pas besoins de modifier
+prestashop_db_host: "localhost" # L'hôte de la base de données
+prestashop_db_charset: "utf8" # Le jeu de caractères utilisé pour la base de données (UTF-8 recommandé pour Prestashop
