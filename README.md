@@ -1,4 +1,3 @@
-```markdown
 # Déploiement PrestaShop avec Ansible
 
 
@@ -18,8 +17,8 @@ Ce projet automatise le déploiement d'une boutique PrestaShop en séparant le s
 
 1. **Cloner le dépôt**  
    ```bash
-   git clone https://github.com/votre-utilisateur/votre-depot.git
-   cd votre-depot
+   git clone https://github.com/mohakadd/ansible-prestashop.git
+   cd ansible-prestashop
    ```
 
 2. **Modifier l'inventaire**  
